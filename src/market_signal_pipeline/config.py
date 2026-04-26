@@ -24,7 +24,6 @@ class Settings(BaseSettings):
 
     azure_storage_account: str = Field(default="", alias="AZURE_STORAGE_ACCOUNT")
     azure_storage_container: str = Field(default="", alias="AZURE_STORAGE_CONTAINER")
-    azure_ml_workspace_name: str = Field(default="", alias="AZURE_ML_WORKSPACE_NAME")
     azure_resource_group: str = Field(default="", alias="AZURE_RESOURCE_GROUP")
     azure_subscription_id: str = Field(default="", alias="AZURE_SUBSCRIPTION_ID")
 
