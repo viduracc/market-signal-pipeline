@@ -48,11 +48,10 @@ class AlphaVantageClient:
     def __repr__(self) -> str:
         return f"AlphaVantageClient(base_url={self._base_url!r})"
 
-    def fetch_daily(self, ticker: str) -> DailySeries:
-        """Fetch daily OHLCV bars for a ticker. Returns a clean DailySeries."""
+    def fetch_daily(self, ticker: str) -> tuple[DailySeries, bytes]:
+        """Fetch daily OHLCV bars for a ticker. Returns parsed series and raw response bytes."""
         try:
-            result: DailySeries = self._fetch_daily_with_retry(ticker)
-            return result
+            return self._fetch_daily_with_retry(ticker)
         except RetryError as exc:
             last_exception = exc.last_attempt.exception()
             if last_exception is None:
@@ -67,7 +66,7 @@ class AlphaVantageClient:
         ),
         reraise=False,
     )
-    def _fetch_daily_with_retry(self, ticker: str) -> DailySeries:
+    def _fetch_daily_with_retry(self, ticker: str) -> tuple[DailySeries, bytes]:
         log.info("alpha_vantage.fetch_daily.attempt", ticker=ticker)
         response = self._client.get(
             f"{self._base_url}/query",
@@ -78,7 +77,8 @@ class AlphaVantageClient:
                 "apikey": self._api_key,
             },
         )
-        return self._handle_response(response, ticker)
+        series = self._handle_response(response, ticker)
+        return series, response.content
 
     def _handle_response(self, response: httpx.Response, ticker: str) -> DailySeries:
         if response.status_code == 429:
