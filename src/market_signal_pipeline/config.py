@@ -26,6 +26,7 @@ class Settings(BaseSettings):
     azure_storage_container: str = Field(default="", alias="AZURE_STORAGE_CONTAINER")
     azure_resource_group: str = Field(default="", alias="AZURE_RESOURCE_GROUP")
     azure_subscription_id: str = Field(default="", alias="AZURE_SUBSCRIPTION_ID")
+    azure_storage_account_key: str = Field(default="", alias="AZURE_STORAGE_ACCOUNT_KEY")
 
     database_url: str = Field(default="", alias="DATABASE_URL")
 

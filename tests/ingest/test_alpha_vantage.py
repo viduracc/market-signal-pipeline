@@ -52,13 +52,15 @@ def test_fetch_daily_happy_path(client: AlphaVantageClient) -> None:
         return_value=httpx.Response(200, json=VALID_PAYLOAD)
     )
 
-    series = client.fetch_daily("MSFT")
+    series, raw = client.fetch_daily("MSFT")
 
     assert series.symbol == "MSFT"
     assert len(series.bars) == 2
     assert series.bars[0].bar_date.isoformat() == "2026-04-24"
     assert series.bars[0].open == Decimal("412.50")
     assert series.bars[0].volume == 18234500
+    assert isinstance(raw, bytes)
+    assert b"Meta Data" in raw
 
 
 @respx.mock
@@ -70,7 +72,7 @@ def test_fetch_daily_retries_on_rate_limit(client: AlphaVantageClient) -> None:
         ]
     )
 
-    series = client.fetch_daily("MSFT")
+    series, _ = client.fetch_daily("MSFT")
 
     assert route.call_count == 2
     assert series.symbol == "MSFT"
@@ -86,7 +88,7 @@ def test_fetch_daily_retries_on_soft_rate_limit(client: AlphaVantageClient) -> N
         ]
     )
 
-    series = client.fetch_daily("MSFT")
+    series, _ = client.fetch_daily("MSFT")
 
     assert route.call_count == 2
     assert series.symbol == "MSFT"
