@@ -81,3 +81,34 @@ def test_repr_does_not_leak_key() -> None:
         )
         assert "super-secret-key" not in repr(writer)
         assert "bronze-raw" in repr(writer)
+
+
+def test_write_historical_happy_path(writer: BronzeWriter) -> None:
+    mock_blob_client = MagicMock()
+    writer._container.get_blob_client = MagicMock(return_value=mock_blob_client)  # pyright: ignore[reportPrivateUsage]
+
+    blob_path = writer.write_historical(
+        ticker="MSFT",
+        raw_bytes=b'{"Meta Data": {"2. Symbol": "MSFT"}}',
+    )
+
+    assert blob_path == "historical/MSFT.json"
+    mock_blob_client.upload_blob.assert_called_once()
+    call_kwargs = mock_blob_client.upload_blob.call_args.kwargs
+    assert call_kwargs["overwrite"] is True
+
+
+def test_write_historical_path_format(writer: BronzeWriter) -> None:
+    writer._container.get_blob_client = MagicMock(return_value=MagicMock())  # pyright: ignore[reportPrivateUsage]
+
+    assert writer.write_historical("AAPL", b"{}") == "historical/AAPL.json"
+    assert writer.write_historical("GOOGL", b"{}") == "historical/GOOGL.json"
+
+
+def test_write_historical_raises_on_azure_error(writer: BronzeWriter) -> None:
+    mock_blob_client = MagicMock()
+    mock_blob_client.upload_blob.side_effect = ServiceRequestError(message="connection failed")
+    writer._container.get_blob_client = MagicMock(return_value=mock_blob_client)  # pyright: ignore[reportPrivateUsage]
+
+    with pytest.raises(BronzeWriteError, match="Failed to write historical MSFT"):
+        writer.write_historical(ticker="MSFT", raw_bytes=b"{}")

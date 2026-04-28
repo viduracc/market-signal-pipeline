@@ -57,3 +57,25 @@ class BronzeWriter:
     @staticmethod
     def _build_path(ticker: str, series_date: date) -> str:
         return f"{series_date.year:04d}/{series_date.month:02d}/{series_date.day:02d}/{ticker}.json"
+
+    def write_historical(self, ticker: str, raw_bytes: bytes) -> str:
+        """Write full historical raw response to bronze. Returns the blob path written."""
+        blob_path = self._build_historical_path(ticker)
+        log.info("bronze.write_historical.attempt", ticker=ticker, blob_path=blob_path)
+
+        try:
+            blob_client = self._container.get_blob_client(blob_path)
+            blob_client.upload_blob(
+                raw_bytes,
+                overwrite=True,
+                content_settings=ContentSettings(content_type="application/json"),
+            )
+        except AzureError as exc:
+            raise BronzeWriteError(f"Failed to write historical {ticker}: {exc}") from exc
+
+        log.info("bronze.write_historical.success", ticker=ticker, blob_path=blob_path)
+        return blob_path
+
+    @staticmethod
+    def _build_historical_path(ticker: str) -> str:
+        return f"historical/{ticker}.json"

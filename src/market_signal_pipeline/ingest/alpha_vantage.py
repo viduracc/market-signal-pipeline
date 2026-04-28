@@ -48,10 +48,19 @@ class AlphaVantageClient:
     def __repr__(self) -> str:
         return f"AlphaVantageClient(base_url={self._base_url!r})"
 
-    def fetch_daily(self, ticker: str) -> tuple[DailySeries, bytes]:
-        """Fetch daily OHLCV bars for a ticker. Returns parsed series and raw response bytes."""
+    def fetch_daily(
+        self,
+        ticker: str,
+        outputsize: str = "compact",
+    ) -> tuple[DailySeries, bytes]:
+        """Fetch daily OHLCV bars for a ticker. Returns parsed series and raw response bytes.
+
+        outputsize: 'compact' returns last 100 bars, 'full' returns full history (~20 years).
+        """
+        if outputsize not in ("compact", "full"):
+            raise ValueError("outputsize must be 'compact' or 'full'")
         try:
-            return self._fetch_daily_with_retry(ticker)
+            return self._fetch_daily_with_retry(ticker, outputsize)
         except RetryError as exc:
             last_exception = exc.last_attempt.exception()
             if last_exception is None:
@@ -66,14 +75,18 @@ class AlphaVantageClient:
         ),
         reraise=False,
     )
-    def _fetch_daily_with_retry(self, ticker: str) -> tuple[DailySeries, bytes]:
-        log.info("alpha_vantage.fetch_daily.attempt", ticker=ticker)
+    def _fetch_daily_with_retry(
+        self,
+        ticker: str,
+        outputsize: str,
+    ) -> tuple[DailySeries, bytes]:
+        log.info("alpha_vantage.fetch_daily.attempt", ticker=ticker, outputsize=outputsize)
         response = self._client.get(
             f"{self._base_url}/query",
             params={
                 "function": "TIME_SERIES_DAILY",
                 "symbol": ticker,
-                "outputsize": "compact",
+                "outputsize": outputsize,
                 "apikey": self._api_key,
             },
         )
