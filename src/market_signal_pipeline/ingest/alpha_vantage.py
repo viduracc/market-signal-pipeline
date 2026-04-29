@@ -15,8 +15,8 @@ from tenacity import (
 )
 
 from market_signal_pipeline.ingest.exceptions import (
-    AlphaVantageError,
     ClientError,
+    IngestError,
     MalformedResponseError,
     RateLimitError,
     ServerError,
@@ -64,7 +64,7 @@ class AlphaVantageClient:
         except RetryError as exc:
             last_exception = exc.last_attempt.exception()
             if last_exception is None:
-                raise AlphaVantageError("Retry failed with no underlying exception") from exc
+                raise IngestError("Retry failed with no underlying exception") from exc
             raise last_exception from exc
 
     @retry(

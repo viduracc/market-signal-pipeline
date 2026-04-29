@@ -6,8 +6,8 @@ from dataclasses import dataclass, field
 import structlog
 
 from market_signal_pipeline.config import get_settings
-from market_signal_pipeline.ingest.alpha_vantage import AlphaVantageClient
 from market_signal_pipeline.ingest.bronze import BronzeWriter
+from market_signal_pipeline.ingest.yahoo_finance import YahooFinanceClient
 
 log = structlog.get_logger()
 
@@ -25,7 +25,7 @@ class BackfillResult:
 
 
 def run_backfill(
-    client: AlphaVantageClient,
+    client: YahooFinanceClient,
     writer: BronzeWriter,
     tickers: tuple[str, ...],
 ) -> BackfillResult:
@@ -34,7 +34,7 @@ def run_backfill(
 
     for ticker in tickers:
         try:
-            _, raw = client.fetch_daily(ticker, outputsize="full")
+            _, raw = client.fetch_daily(ticker, period="max")
             blob_path = writer.write_historical(ticker=ticker, raw_bytes=raw)
             result.successes.append(ticker)
             log.info("backfill.ticker.success", ticker=ticker, blob_path=blob_path, bytes=len(raw))
@@ -51,13 +51,13 @@ def main() -> int:
 
     log.info("backfill.run.start", tickers=list(TICKERS))
 
-    with AlphaVantageClient(api_key=settings.alpha_vantage_api_key) as client:
-        writer = BronzeWriter(
-            account_url=account_url,
-            account_key=settings.azure_storage_account_key,
-            container_name=settings.azure_storage_container,
-        )
-        result = run_backfill(client=client, writer=writer, tickers=TICKERS)
+    client = YahooFinanceClient()
+    writer = BronzeWriter(
+        account_url=account_url,
+        account_key=settings.azure_storage_account_key,
+        container_name=settings.azure_storage_container,
+    )
+    result = run_backfill(client=client, writer=writer, tickers=TICKERS)
 
     log.info(
         "backfill.run.complete",

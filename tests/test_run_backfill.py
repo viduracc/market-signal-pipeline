@@ -4,10 +4,10 @@ from datetime import date
 from decimal import Decimal
 from unittest.mock import MagicMock
 
-from market_signal_pipeline.ingest.alpha_vantage import AlphaVantageClient
 from market_signal_pipeline.ingest.bronze import BronzeWriter
-from market_signal_pipeline.ingest.exceptions import RateLimitError
+from market_signal_pipeline.ingest.exceptions import IngestError
 from market_signal_pipeline.ingest.models import DailyBar, DailySeries
+from market_signal_pipeline.ingest.yahoo_finance import YahooFinanceClient
 from scripts.run_backfill import BackfillResult, run_backfill
 
 
@@ -29,9 +29,9 @@ def _make_series(symbol: str) -> DailySeries:
 
 
 def test_run_backfill_all_succeed() -> None:
-    client = MagicMock(spec=AlphaVantageClient)
+    client = MagicMock(spec=YahooFinanceClient)
 
-    def fetch_side_effect(ticker: str, outputsize: str = "compact") -> tuple[DailySeries, bytes]:
+    def fetch_side_effect(ticker: str, period: str = "max") -> tuple[DailySeries, bytes]:
         return _make_series(ticker), b'{"raw": "historical data"}'
 
     client.fetch_daily.side_effect = fetch_side_effect
@@ -52,8 +52,8 @@ def test_run_backfill_all_succeed() -> None:
     assert writer.write_historical.call_count == 2
 
 
-def test_run_backfill_uses_full_outputsize() -> None:
-    client = MagicMock(spec=AlphaVantageClient)
+def test_run_backfill_uses_max_period() -> None:
+    client = MagicMock(spec=YahooFinanceClient)
     client.fetch_daily.return_value = (_make_series("MSFT"), b"{}")
 
     writer = MagicMock(spec=BronzeWriter)
@@ -61,15 +61,15 @@ def test_run_backfill_uses_full_outputsize() -> None:
 
     run_backfill(client=client, writer=writer, tickers=("MSFT",))
 
-    client.fetch_daily.assert_called_once_with("MSFT", outputsize="full")
+    client.fetch_daily.assert_called_once_with("MSFT", period="max")
 
 
 def test_run_backfill_partial_failure() -> None:
-    client = MagicMock(spec=AlphaVantageClient)
+    client = MagicMock(spec=YahooFinanceClient)
 
-    def fetch_side_effect(ticker: str, outputsize: str = "compact") -> tuple[DailySeries, bytes]:
+    def fetch_side_effect(ticker: str, period: str = "max") -> tuple[DailySeries, bytes]:
         if ticker == "AAPL":
-            raise RateLimitError("rate limited")
+            raise IngestError("network failure")
         return _make_series(ticker), b"{}"
 
     client.fetch_daily.side_effect = fetch_side_effect
@@ -85,7 +85,7 @@ def test_run_backfill_partial_failure() -> None:
 
     assert result.successes == ["MSFT", "GOOGL"]
     assert "AAPL" in result.failures
-    assert "RateLimitError" in result.failures["AAPL"]
+    assert "IngestError" in result.failures["AAPL"]
     assert result.any_failed is True
 
 
