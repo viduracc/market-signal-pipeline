@@ -29,6 +29,9 @@ repos:
           - tenacity>=9.0
           - structlog>=24.4
           - azure-storage-blob>=12.24
+          - yfinance>=0.2.40
+          - yfinance>=0.2.40
+          - pandas-stubs>=2.2
         args: [ --config-file=pyproject.toml ]
         files: ^src/
 
