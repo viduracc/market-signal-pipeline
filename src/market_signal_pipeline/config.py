@@ -28,7 +28,11 @@ class Settings(BaseSettings):
     azure_subscription_id: str = Field(default="", alias="AZURE_SUBSCRIPTION_ID")
     azure_storage_account_key: str = Field(default="", alias="AZURE_STORAGE_ACCOUNT_KEY")
 
-    database_url: str = Field(default="", alias="DATABASE_URL")
+    postgres_host: str = Field(default="", alias="POSTGRES_HOST")
+    postgres_port: int = Field(default=5432, alias="POSTGRES_PORT")
+    postgres_db: str = Field(default="market_signals", alias="POSTGRES_DB")
+    postgres_user: str = Field(default="", alias="POSTGRES_USER")
+    postgres_password: str = Field(default="", alias="POSTGRES_PASSWORD")
 
 
 @lru_cache
