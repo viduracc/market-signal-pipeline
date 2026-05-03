@@ -39,12 +39,6 @@ variable "pg_admin_login" {
   description = "Administrator login for the PostgreSQL Flexible Server."
   type        = string
   default     = "pgadmin"
-}
-
-variable "pg_admin_login" {
-  description = "Administrator login for the PostgreSQL Flexible Server."
-  type        = string
-  default     = "pgadmin"
 
   validation {
     condition     = !contains(["admin", "administrator", "azure_superuser", "azure_pg_admin", "root", "guest", "public", "postgres"], var.pg_admin_login)
@@ -60,4 +54,10 @@ variable "pg_allowed_ip" {
     condition     = can(regex("^(\\d{1,3}\\.){3}\\d{1,3}$", var.pg_allowed_ip))
     error_message = "pg_allowed_ip must be a valid IPv4 address."
   }
+}
+
+variable "pg_location" {
+  description = "Azure region for the PostgreSQL Flexible Server."
+  type        = string
+  default     = "southeastasia"
 }

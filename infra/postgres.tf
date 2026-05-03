@@ -1,3 +1,10 @@
+resource "random_string" "pg_suffix" {
+  length  = 4
+  special = false
+  upper   = false
+  numeric = true
+}
+
 resource "random_password" "pg_admin" {
   length           = 24
   special          = true
@@ -9,9 +16,9 @@ resource "random_password" "pg_admin" {
 }
 
 resource "azurerm_postgresql_flexible_server" "main" {
-  name                = "pg-${var.project_name}-${var.environment}-${random_string.suffix.result}"
+  name                = "pg-${var.project_name}-${var.environment}-${random_string.pg_suffix.result}"
   resource_group_name = azurerm_resource_group.main.name
-  location            = azurerm_resource_group.main.location
+  location            = var.pg_location
 
   version    = "16"
   sku_name   = "B_Standard_B1ms"
