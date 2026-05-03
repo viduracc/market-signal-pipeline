@@ -36,14 +36,26 @@ def run_ingestion(
 
     for ticker in tickers:
         try:
-            _, raw = client.fetch_daily(ticker)
+            series, raw = client.fetch_daily(ticker)
             blob_path = writer.write(
                 ticker=ticker,
-                series_date=ingest_date.date(),
+                series_date=series.last_refreshed,
                 raw_bytes=raw,
             )
             result.successes.append(ticker)
-            log.info("ingestion.ticker.success", ticker=ticker, blob_path=blob_path)
+            log.info(
+                "ingestion.ticker.success",
+                ticker=ticker,
+                blob_path=blob_path,
+                last_refreshed=series.last_refreshed.isoformat(),
+            )
+            if series.last_refreshed < ingest_date.date():
+                log.warning(
+                    "ingestion.ticker.stale",
+                    ticker=ticker,
+                    last_refreshed=series.last_refreshed.isoformat(),
+                    run_date=ingest_date.date().isoformat(),
+                )
         except Exception as exc:
             result.failures[ticker] = f"{type(exc).__name__}: {exc}"
             log.error("ingestion.ticker.failure", ticker=ticker, error=str(exc))

@@ -109,3 +109,49 @@ def test_ingestion_result_any_failed_property() -> None:
 
     with_failure = IngestionResult(failures={"MSFT": "error"})
     assert with_failure.any_failed is True
+
+
+def test_run_ingestion_stale_data_emits_warning() -> None:
+    from datetime import date
+    from decimal import Decimal
+
+    import structlog.testing
+
+    stale_series = DailySeries(
+        symbol="MSFT",
+        last_refreshed=date(2026, 4, 30),
+        bars=(
+            DailyBar(
+                date=date(2026, 4, 30),
+                open=Decimal("100"),
+                high=Decimal("110"),
+                low=Decimal("95"),
+                close=Decimal("105"),
+                volume=1000,
+            ),
+        ),
+    )
+
+    client = MagicMock(spec=AlphaVantageClient)
+    client.fetch_daily.return_value = (stale_series, b"{}")
+
+    writer = MagicMock(spec=BronzeWriter)
+    writer.write.return_value = "2026/04/30/MSFT.json"
+
+    with structlog.testing.capture_logs() as logs:
+        result = run_ingestion(
+            client=client,
+            writer=writer,
+            tickers=("MSFT",),
+            ingest_date=datetime(2026, 5, 3, tzinfo=UTC),
+        )
+
+    assert result.successes == ["MSFT"]
+    assert result.any_failed is False
+
+    warnings = [e for e in logs if e["log_level"] == "warning"]
+    assert len(warnings) == 1
+    assert warnings[0]["event"] == "ingestion.ticker.stale"
+    assert warnings[0]["ticker"] == "MSFT"
+    assert warnings[0]["last_refreshed"] == "2026-04-30"
+    assert warnings[0]["run_date"] == "2026-05-03"
