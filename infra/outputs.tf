@@ -18,3 +18,31 @@ output "storage_account_id" {
   value       = azurerm_storage_account.bronze.id
   sensitive   = true
 }
+
+output "pg_host" {
+  description = "PostgreSQL Flexible Server FQDN."
+  value       = azurerm_postgresql_flexible_server.main.fqdn
+  sensitive   = true
+}
+
+output "pg_port" {
+  description = "PostgreSQL port."
+  value       = 5432
+}
+
+output "pg_database" {
+  description = "Name of the market_signals database."
+  value       = azurerm_postgresql_flexible_server_database.signals.name
+}
+
+output "pg_admin_login" {
+  description = "PostgreSQL administrator login."
+  value       = azurerm_postgresql_flexible_server.main.administrator_login
+  sensitive   = true
+}
+
+output "pg_admin_password" {
+  description = "PostgreSQL administrator password (randomly generated)."
+  value       = random_password.pg_admin.result
+  sensitive   = true
+}
