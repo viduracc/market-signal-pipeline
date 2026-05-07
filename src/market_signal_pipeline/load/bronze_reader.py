@@ -4,7 +4,7 @@ import structlog
 from azure.core.exceptions import AzureError
 from azure.storage.blob import ContainerClient
 
-log = structlog.getLogger()
+log = structlog.get_logger()
 
 
 class BronzeReadError(Exception):
@@ -12,7 +12,7 @@ class BronzeReadError(Exception):
 
 
 class BronzeReader:
-    """Reads raw blob from the bronze container."""
+    """Reads raw blobs from the bronze container."""
 
     def __init__(
         self,
@@ -21,10 +21,12 @@ class BronzeReader:
         container_name: str,
     ) -> None:
         if not account_key:
-            raise ValueError("account_key must be a none-empty string")
+            raise ValueError("account_key must be a non-empty string")
         self._container_name = container_name
         self._container = ContainerClient(
-            account_url=account_url, container_name=container_name, credential=account_key
+            account_url=account_url,
+            container_name=container_name,
+            credential=account_key,
         )
 
     def __repr__(self) -> str:
