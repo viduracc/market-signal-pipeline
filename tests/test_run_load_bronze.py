@@ -5,7 +5,7 @@ from unittest.mock import MagicMock
 from market_signal_pipeline.ingest.exceptions import MalformedResponseError
 from market_signal_pipeline.load.bronze_reader import BronzeReader
 from market_signal_pipeline.load.postgres_writer import PostgresWriter
-from scripts.run_load_bronze import LoadResult, _ticker_from_path, run_load
+from scripts.run_load_bronze import LoadResult, run_load, ticker_from_path
 
 
 def _mock_reader(blobs: list[str], blob_content: bytes = b"{}") -> MagicMock:
@@ -22,11 +22,11 @@ def _mock_writer(upsert_return: int = 1) -> MagicMock:
 
 
 def test_ticker_from_daily_path() -> None:
-    assert _ticker_from_path("2026/05/01/AAPL.json") == "AAPL"
+    assert ticker_from_path("2026/05/01/AAPL.json") == "AAPL"
 
 
 def test_ticker_from_historical_path() -> None:
-    assert _ticker_from_path("historical/MSFT.json") == "MSFT"
+    assert ticker_from_path("historical/MSFT.json") == "MSFT"
 
 
 def test_run_load_all_succeed() -> None:
