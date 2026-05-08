@@ -19,6 +19,7 @@ dependencies = [
 ]
 
 [project.optional-dependencies]
+transform = ["dbt-core>=1.8", "dbt-postgres>=1.8"]
 dev = [
   "ruff>=0.8",
   "mypy>=1.13",
