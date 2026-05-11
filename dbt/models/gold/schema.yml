@@ -1,0 +1,18 @@
+version: 2
+
+models:
+  - name: gold_features
+    description: "Engineered features for model training: returns, moving averages, volatility, volume ratio, RSI-14."
+    columns:
+      - name: ticker
+        tests:
+          - not_null
+      - name: bar_date
+        tests:
+          - not_null
+      - name: close
+        tests:
+          - not_null
+    tests:
+      - unique:
+          column_name: "ticker || '|' || bar_date::text"
