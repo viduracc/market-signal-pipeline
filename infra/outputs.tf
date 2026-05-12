@@ -46,3 +46,25 @@ output "pg_admin_password" {
   value       = random_password.pg_admin.result
   sensitive   = true
 }
+
+output "ml_workspace_name" {
+  description = "Azure ML workspace name."
+  value       = azurerm_machine_learning_workspace.main.name
+}
+
+output "ml_workspace_id" {
+  description = "Azure ML workspace resource ID."
+  value       = azurerm_machine_learning_workspace.main.id
+  sensitive   = true
+}
+
+output "container_registry_name" {
+  description = "Azure Container Registry name."
+  value       = azurerm_container_registry.main.name
+}
+
+output "key_vault_uri" {
+  description = "Key Vault URI."
+  value       = azurerm_key_vault.main.vault_uri
+  sensitive   = true
+}

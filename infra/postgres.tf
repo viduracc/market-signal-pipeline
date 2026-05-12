@@ -36,6 +36,10 @@ resource "azurerm_postgresql_flexible_server" "main" {
   }
 
   tags = var.tags
+
+  lifecycle {
+    ignore_changes = [zone]
+  }
 }
 
 resource "azurerm_postgresql_flexible_server_database" "signals" {
