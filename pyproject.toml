@@ -16,6 +16,11 @@ dependencies = [
   "azure-storage-blob>=12.24",
   "yfinance>=0.2.40",
   "psycopg[binary]>=3.1",
+  "lightgbm>=4.0",
+  "azure-ai-ml>=1.12",
+  "azure-identity>=1.15",
+  "pandas>=2.2",
+  "scikit-learn>=1.4",
 ]
 
 [project.optional-dependencies]
@@ -59,6 +64,14 @@ disallow_incomplete_defs = true
 
 [[tool.mypy.overrides]]
 module = "yfinance"
+ignore_missing_imports = true
+
+[[tool.mypy.overrides]]
+module = "lightgbm"
+ignore_missing_imports = true
+
+[[tool.mypy.overrides]]
+module = "sklearn.*"
 ignore_missing_imports = true
 
 [tool.pytest.ini_options]

@@ -58,7 +58,7 @@ def run_ingestion(
                 )
         except Exception as exc:
             result.failures[ticker] = f"{type(exc).__name__}: {exc}"
-            log.error("ingestion.ticker.failure", ticker=ticker, error=str(exc))
+            log.error("ingestion.ticker.failure", ticker=ticker, error_type=type(exc).__name__)
 
     return result
 
@@ -69,10 +69,10 @@ def main() -> int:
 
     log.info("ingestion.run.start", tickers=list(TICKERS))
 
-    with AlphaVantageClient(api_key=settings.alpha_vantage_api_key) as client:
+    with AlphaVantageClient(api_key=settings.alpha_vantage_api_key.get_secret_value()) as client:
         writer = BronzeWriter(
             account_url=account_url,
-            account_key=settings.azure_storage_account_key,
+            account_key=settings.azure_storage_account_key.get_secret_value(),
             container_name=settings.azure_storage_container,
         )
         result = run_ingestion(

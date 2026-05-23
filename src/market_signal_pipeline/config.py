@@ -3,7 +3,7 @@
 from functools import lru_cache
 from typing import Literal
 
-from pydantic import Field
+from pydantic import Field, SecretStr
 from pydantic_settings import BaseSettings, SettingsConfigDict
 
 
@@ -20,19 +20,23 @@ class Settings(BaseSettings):
     env: Literal["local", "dev", "prod"] = "local"
     log_level: str = "INFO"
 
-    alpha_vantage_api_key: str = Field(default="", alias="ALPHA_VANTAGE_API_KEY")
+    alpha_vantage_api_key: SecretStr = Field(default=SecretStr(""), alias="ALPHA_VANTAGE_API_KEY")
 
     azure_storage_account: str = Field(default="", alias="AZURE_STORAGE_ACCOUNT")
     azure_storage_container: str = Field(default="", alias="AZURE_STORAGE_CONTAINER")
     azure_resource_group: str = Field(default="", alias="AZURE_RESOURCE_GROUP")
     azure_subscription_id: str = Field(default="", alias="AZURE_SUBSCRIPTION_ID")
-    azure_storage_account_key: str = Field(default="", alias="AZURE_STORAGE_ACCOUNT_KEY")
+    azure_storage_account_key: SecretStr = Field(
+        default=SecretStr(""), alias="AZURE_STORAGE_ACCOUNT_KEY"
+    )
 
     postgres_host: str = Field(default="", alias="POSTGRES_HOST")
     postgres_port: int = Field(default=5432, alias="POSTGRES_PORT")
     postgres_db: str = Field(default="market_signals", alias="POSTGRES_DB")
     postgres_user: str = Field(default="", alias="POSTGRES_USER")
-    postgres_password: str = Field(default="", alias="POSTGRES_PASSWORD")
+    postgres_password: SecretStr = Field(default=SecretStr(""), alias="POSTGRES_PASSWORD")
+
+    azure_ml_workspace: str = Field(default="", alias="AZURE_ML_WORKSPACE")
 
 
 @lru_cache

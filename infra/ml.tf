@@ -61,3 +61,23 @@ resource "azurerm_machine_learning_workspace" "main" {
 
   tags = var.tags
 }
+
+resource "azurerm_key_vault_access_policy" "ml_workspace" {
+  key_vault_id = azurerm_key_vault.main.id
+  tenant_id    = data.azurerm_client_config.current.tenant_id
+  object_id    = azurerm_machine_learning_workspace.main.identity[0].principal_id
+
+  secret_permissions = ["Get", "List", "Set", "Delete", "Recover", "Purge"]
+}
+
+resource "azurerm_role_assignment" "ml_operator_blob_reader" {
+  scope                = azurerm_storage_account.bronze.id
+  role_definition_name = "Storage Blob Data Reader"
+  principal_id         = data.azurerm_client_config.current.object_id
+}
+
+resource "azurerm_role_assignment" "ml_operator_blob_contributor" {
+  scope                = azurerm_storage_account.bronze.id
+  role_definition_name = "Storage Blob Data Contributor"
+  principal_id         = data.azurerm_client_config.current.object_id
+}

@@ -40,7 +40,7 @@ def run_backfill(
             log.info("backfill.ticker.success", ticker=ticker, blob_path=blob_path, bytes=len(raw))
         except Exception as exc:
             result.failures[ticker] = f"{type(exc).__name__}: {exc}"
-            log.error("backfill.ticker.failure", ticker=ticker, error=str(exc))
+            log.error("backfill.ticker.failure", ticker=ticker, error_type=type(exc).__name__)
 
     return result
 
@@ -54,7 +54,7 @@ def main() -> int:
     client = YahooFinanceClient()
     writer = BronzeWriter(
         account_url=account_url,
-        account_key=settings.azure_storage_account_key,
+        account_key=settings.azure_storage_account_key.get_secret_value(),
         container_name=settings.azure_storage_container,
     )
     result = run_backfill(client=client, writer=writer, tickers=TICKERS)
