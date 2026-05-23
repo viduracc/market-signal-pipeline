@@ -47,7 +47,12 @@ def run_load(
             log.info("load.blob.success", blob_path=blob_path, ticker=ticker, rows=rows)
         except (BronzeReadError, MalformedResponseError, PostgresWriteError, Exception) as exc:
             result.failures[blob_path] = f"{type(exc).__name__}: {exc}"
-            log.error("load.blob.failure", blob_path=blob_path, ticker=ticker, error=str(exc))
+            log.error(
+                "load.blob.failure",
+                blob_path=blob_path,
+                ticker=ticker,
+                error_type=type(exc).__name__,
+            )
 
     return result
 
@@ -60,7 +65,7 @@ def main() -> int:
 
     reader = BronzeReader(
         account_url=account_url,
-        account_key=settings.azure_storage_account_key,
+        account_key=settings.azure_storage_account_key.get_secret_value(),
         container_name=settings.azure_storage_container,
     )
 
@@ -69,7 +74,7 @@ def main() -> int:
         port=settings.postgres_port,
         dbname=settings.postgres_db,
         user=settings.postgres_user,
-        password=settings.postgres_password,
+        password=settings.postgres_password.get_secret_value(),
     ) as writer:
         writer.ensure_table()
         result = run_load(reader=reader, writer=writer)
